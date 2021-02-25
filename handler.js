@@ -1,18 +1,32 @@
 'use strict';
-const express = require('serverless-express/express')
+const express = require('serverless-express/express');
+const handler = require("serverless-express/handler")
+const AWS = require("aws-sdk")
+const REGION = 'US-WEST-2'
+const s3 = new AWS.S3({apiVersions: '2006-03-01'});
+
+
+const bucket_parameters = {
+  Bucket: 'cs493-boyk-test',
+}
+
 var app = express();
 
-app.get("/test", function(req, res) {
-  res.send({
-    title: 'track title',
-    artist: 'artist name',
-    genre: 'genre title'
-  });
-});
-
-//module.exports = app;
-
-const handler = require("serverless-express/handler")
+app.get('/test', function(req, res) {
+  let s3 = new AWS.S3({apiVersions: '2006-03-01'});
+  s3.listObjects(bucket_parameters, function(err, data) {
+    if (err) {
+      res.send(err)
+    }
+    data.Contents.forEach((file) => {
+      console.log(file.key)
+    })
+    res.send({
+      data: data
+    })
+    return data
+  })
+})
 
 module.exports.api = handler(app);
 

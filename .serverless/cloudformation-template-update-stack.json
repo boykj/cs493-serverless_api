@@ -71,10 +71,10 @@
         }
       }
     },
-    "HelloLogGroup": {
+    "GetUnderscoresongsLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/music-api-dev-hello"
+        "LogGroupName": "/aws/lambda/music-api-dev-get_songs"
       }
     },
     "IamRoleLambdaExecution": {
@@ -154,20 +154,25 @@
         }
       }
     },
-    "HelloLambdaFunction": {
+    "GetUnderscoresongsLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/music-api/dev/1614052219615-2021-02-23T03:50:19.615Z/music-api.zip"
+          "S3Key": "serverless/music-api/dev/1614221187551-2021-02-25T02:46:27.551Z/music-api.zip"
         },
-        "Handler": "handler.hello",
+        "Handler": "handler.api",
         "Runtime": "nodejs12.x",
-        "FunctionName": "music-api-dev-hello",
+        "FunctionName": "music-api-dev-get_songs",
         "MemorySize": 1024,
         "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "SERVERLESS_EXPRESS_PLATFORM": "aws"
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -176,17 +181,17 @@
         }
       },
       "DependsOn": [
-        "HelloLogGroup"
+        "GetUnderscoresongsLogGroup"
       ]
     },
-    "HelloLambdaVersionoU23g1sdGFnPm9P7aMsmUYURwSz6qr7FehvcjIoJbw": {
+    "GetUnderscoresongsLambdaVersionu6SP1lHZf74Tq8Jf6wVv6EEKsSm92kIYOVYw6WoTI": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "HelloLambdaFunction"
+          "Ref": "GetUnderscoresongsLambdaFunction"
         },
-        "CodeSha256": "42jf79NceCVn/GTC77BHe3+D0piErOEjBNDdUpQjM9k="
+        "CodeSha256": "zmjopCycfzbWavliEakDsBSWmngy8O865wD34wRQS+k="
       }
     },
     "HttpApi": {
@@ -209,12 +214,12 @@
         }
       }
     },
-    "HelloLambdaPermissionHttpApi": {
+    "GetUnderscoresongsLambdaPermissionHttpApi": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "HelloLambdaFunction",
+            "GetUnderscoresongsLambdaFunction",
             "Arn"
           ]
         },
@@ -246,7 +251,7 @@
         }
       }
     },
-    "HttpApiIntegrationHello": {
+    "HttpApiIntegrationGetUnderscoresongs": {
       "Type": "AWS::ApiGatewayV2::Integration",
       "Properties": {
         "ApiId": {
@@ -255,7 +260,7 @@
         "IntegrationType": "AWS_PROXY",
         "IntegrationUri": {
           "Fn::GetAtt": [
-            "HelloLambdaFunction",
+            "GetUnderscoresongsLambdaFunction",
             "Arn"
           ]
         },
@@ -263,26 +268,26 @@
         "TimeoutInMillis": 6500
       }
     },
-    "HttpApiRouteGetHello": {
+    "HttpApiRouteGetTest": {
       "Type": "AWS::ApiGatewayV2::Route",
       "Properties": {
         "ApiId": {
           "Ref": "HttpApi"
         },
-        "RouteKey": "GET /hello",
+        "RouteKey": "GET /test",
         "Target": {
           "Fn::Join": [
             "/",
             [
               "integrations",
               {
-                "Ref": "HttpApiIntegrationHello"
+                "Ref": "HttpApiIntegrationGetUnderscoresongs"
               }
             ]
           ]
         }
       },
-      "DependsOn": "HttpApiIntegrationHello"
+      "DependsOn": "HttpApiIntegrationGetUnderscoresongs"
     }
   },
   "Outputs": {
@@ -291,10 +296,10 @@
         "Ref": "ServerlessDeploymentBucket"
       }
     },
-    "HelloLambdaFunctionQualifiedArn": {
+    "GetUnderscoresongsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "HelloLambdaVersionoU23g1sdGFnPm9P7aMsmUYURwSz6qr7FehvcjIoJbw"
+        "Ref": "GetUnderscoresongsLambdaVersionu6SP1lHZf74Tq8Jf6wVv6EEKsSm92kIYOVYw6WoTI"
       }
     },
     "HttpApiId": {
