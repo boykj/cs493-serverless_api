@@ -11,6 +11,7 @@ provider:
 plugins:
     - serverless-offline
     - serverless-express
+    - serverless-iam-roles-per-function
 
 iamRoleStatements:
   - Effect: "Allow"
@@ -42,12 +43,31 @@ iamRoleStatements:
 #    - exclude-me-dir/**
 
 functions:
+#  get_songs:
+#    handler: handler.api
+#    events:
+#      - httpApi:
+#          path: /test
+#          method: get
   get_songs:
     handler: handler.api
     events:
-      - httpApi:
+      - http:
           path: /test
-          method: get
+          method: any
+    iamRoleStatements:
+      - Effect: 'Allow'
+        Action:
+          - 's3:ListBucket*'
+        Resource: "arn:aws:s3:::cs493-boyk-test"
+      - Effect: 'Allow'
+        Action:
+          - 's3:ListObjects*'
+        Resource: "arn:aws:s3:::cs493-boyk-test"
+      - Effect: 'Allow'
+        Action:
+          - 's3:GetObject*'
+        Resource: "arn:aws:s3:::cs493-boyk-test"
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)

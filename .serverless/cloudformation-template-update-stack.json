@@ -161,7 +161,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/music-api/dev/1614221187551-2021-02-25T02:46:27.551Z/music-api.zip"
+          "S3Key": "serverless/music-api/dev/1614292762600-2021-02-25T22:39:22.600Z/music-api.zip"
         },
         "Handler": "handler.api",
         "Runtime": "nodejs12.x",
@@ -175,46 +175,109 @@
         },
         "Role": {
           "Fn::GetAtt": [
-            "IamRoleLambdaExecution",
+            "GetUnderscoresongsIamRoleLambdaExecution",
             "Arn"
           ]
         }
       },
       "DependsOn": [
+        "GetUnderscoresongsIamRoleLambdaExecution",
         "GetUnderscoresongsLogGroup"
       ]
     },
-    "GetUnderscoresongsLambdaVersionu6SP1lHZf74Tq8Jf6wVv6EEKsSm92kIYOVYw6WoTI": {
+    "GetUnderscoresongsLambdaVersiondsy75iFoYSUbZsqCitZeZS7jwaBEhSMhtYXGrwGTpTA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetUnderscoresongsLambdaFunction"
         },
-        "CodeSha256": "zmjopCycfzbWavliEakDsBSWmngy8O865wD34wRQS+k="
+        "CodeSha256": "JLcpWSAmE71Bg8Bv4nzJ0/eszIxsgo0qqQgGXNYU19I="
       }
     },
-    "HttpApi": {
-      "Type": "AWS::ApiGatewayV2::Api",
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
         "Name": "dev-music-api",
-        "ProtocolType": "HTTP"
+        "EndpointConfiguration": {
+          "Types": [
+            "EDGE"
+          ]
+        },
+        "Policy": ""
       }
     },
-    "HttpApiStage": {
-      "Type": "AWS::ApiGatewayV2::Stage",
+    "ApiGatewayResourceTest": {
+      "Type": "AWS::ApiGateway::Resource",
       "Properties": {
-        "ApiId": {
-          "Ref": "HttpApi"
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
         },
-        "StageName": "$default",
-        "AutoDeploy": true,
-        "DefaultRouteSettings": {
-          "DetailedMetricsEnabled": false
+        "PathPart": "test",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
         }
       }
     },
-    "GetUnderscoresongsLambdaPermissionHttpApi": {
+    "ApiGatewayMethodTestAny": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "ANY",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceTest"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "GetUnderscoresongsLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayDeployment1614292750575": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "dev"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodTestAny"
+      ]
+    },
+    "GetUnderscoresongsLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
@@ -243,51 +306,103 @@
               },
               ":",
               {
-                "Ref": "HttpApi"
+                "Ref": "ApiGatewayRestApi"
               },
-              "/*"
+              "/*/*"
             ]
           ]
         }
       }
     },
-    "HttpApiIntegrationGetUnderscoresongs": {
-      "Type": "AWS::ApiGatewayV2::Integration",
+    "GetUnderscoresongsIamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
       "Properties": {
-        "ApiId": {
-          "Ref": "HttpApi"
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": {
-          "Fn::GetAtt": [
-            "GetUnderscoresongsLambdaFunction",
-            "Arn"
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
           ]
         },
-        "PayloadFormatVersion": "2.0",
-        "TimeoutInMillis": 6500
-      }
-    },
-    "HttpApiRouteGetTest": {
-      "Type": "AWS::ApiGatewayV2::Route",
-      "Properties": {
-        "ApiId": {
-          "Ref": "HttpApi"
-        },
-        "RouteKey": "GET /test",
-        "Target": {
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "music-api",
+                  "dev",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/music-api-dev-get_songs:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket*"
+                  ],
+                  "Resource": "arn:aws:s3:::cs493-boyk-test"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListObjects*"
+                  ],
+                  "Resource": "arn:aws:s3:::cs493-boyk-test"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject*"
+                  ],
+                  "Resource": "arn:aws:s3:::cs493-boyk-test"
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
           "Fn::Join": [
-            "/",
+            "-",
             [
-              "integrations",
+              "music-api",
+              "dev",
+              "get_songs",
               {
-                "Ref": "HttpApiIntegrationGetUnderscoresongs"
-              }
+                "Ref": "AWS::Region"
+              },
+              "lambdaRole"
             ]
           ]
-        }
-      },
-      "DependsOn": "HttpApiIntegrationGetUnderscoresongs"
+        },
+        "ManagedPolicyArns": []
+      }
     }
   },
   "Outputs": {
@@ -299,24 +414,18 @@
     "GetUnderscoresongsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetUnderscoresongsLambdaVersionu6SP1lHZf74Tq8Jf6wVv6EEKsSm92kIYOVYw6WoTI"
+        "Ref": "GetUnderscoresongsLambdaVersiondsy75iFoYSUbZsqCitZeZS7jwaBEhSMhtYXGrwGTpTA"
       }
     },
-    "HttpApiId": {
-      "Description": "Id of the HTTP API",
-      "Value": {
-        "Ref": "HttpApi"
-      }
-    },
-    "HttpApiUrl": {
-      "Description": "URL of the HTTP API",
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
       "Value": {
         "Fn::Join": [
           "",
           [
             "https://",
             {
-              "Ref": "HttpApi"
+              "Ref": "ApiGatewayRestApi"
             },
             ".execute-api.",
             {
@@ -325,7 +434,8 @@
             ".",
             {
               "Ref": "AWS::URLSuffix"
-            }
+            },
+            "/dev"
           ]
         ]
       }
